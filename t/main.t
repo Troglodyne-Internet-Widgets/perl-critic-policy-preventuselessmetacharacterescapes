@@ -5,6 +5,7 @@ use re '/aa';
 
 use 5.014;
 
+use File::Temp();
 use Test::More;
 
 use Perl::Critic;
@@ -60,4 +61,23 @@ foreach my $case ( sort keys %allowed ) {
 # the same edit in each, and two violations would be two reports of one mistake.
 is( violations(q{my $re = qr/\Qa.b\E and \Qc.d\E/;}), 1, 'two wide spans in one regex are one violation' );
 
+# allow_whitespace has no other coverage, and the substitution implementing it
+# is one line: a bad edit there would switch the parameter off in silence.
+{
+    my $rc = File::Temp->new( SUFFIX => '.rc' );
+    print {$rc} "[RegularExpressions::PreventUselessMetacharacterEscapes]\nallow_whitespace = 1\n";
+    close $rc;
+
+    my $lenient = Perl::Critic->new(
+        -profile         => "$rc",
+        '-single-policy' => 'PreventUselessMetacharacterEscapes',
+        -severity        => 1,
+    );
+
+    my $spaced = qq{use strict;\nuse warnings;\nmy \$re = qr/\\Q\$a \$b\\E/;\n};
+    is( scalar $critic->critique( \$spaced ),  1, 'a literal space is a violation by default' );
+    is( scalar $lenient->critique( \$spaced ), 0, 'and is allowed when allow_whitespace is set' );
+}
+
 done_testing;
+

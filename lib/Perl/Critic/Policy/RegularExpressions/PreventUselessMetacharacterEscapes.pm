@@ -97,7 +97,7 @@ Readonly::Scalar my $INTERPOLATION_RX => qr/
       |     \[ [^\]]* \]
       |     \{ [^\}]* \}
     )*
-/xs;
+/x;
 
 =head2 METHODS
 
@@ -154,8 +154,8 @@ sub _literal_remainders {
     while ( $string =~ m/\\Q(.*?)(?:\\E|\z)/gs ) {
         my $body = $1;
 
-        $body =~ s/$INTERPOLATION_RX//gs;
-        $body =~ s/\s+//gxms if $self->{_allow_whitespace};
+        $body =~ s/$INTERPOLATION_RX//g;
+        $body =~ s/\s+//g if $self->{_allow_whitespace};
 
         push @remainders, $body if length $body;
     }

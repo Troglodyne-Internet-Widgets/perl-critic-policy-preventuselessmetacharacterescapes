@@ -107,6 +107,15 @@ PPI::Token::QuoteLike::Regexp
 Standard [Perl::Critic::Policy](https://metacpan.org/pod/Perl%3A%3ACritic%3A%3APolicy) interface.  One violation per token, however
 many spans in it are too wide: the fix is the same edit in each.
 
+# BUGS
+
+Please report any bugs or feature requests on the bugtracker website
+[https://github.com/Troglodyne-Internet-Widgets/perl-critic-policy-preventuselessmetacharacterescapes/issues](https://github.com/Troglodyne-Internet-Widgets/perl-critic-policy-preventuselessmetacharacterescapes/issues)
+
+When submitting a bug or request, please include a test-file or a
+patch to an existing test-file that illustrates the bug or desired
+feature.
+
 # AUTHORS
 
 Current Maintainers:
