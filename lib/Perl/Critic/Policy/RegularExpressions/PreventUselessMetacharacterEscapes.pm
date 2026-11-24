@@ -89,15 +89,13 @@ Readonly::Scalar my $EXPL => q{Put \Q...\E around the interpolated value alone; 
 
 # $name, @name, ${name}, and whatever subscripts or arrows follow -- the parts
 # of a span whose contents the author cannot see and therefore has to quote.
-Readonly::Scalar my $INTERPOLATION_RX => qr/
-    [\$\@]                          # a sigil
-    (?: \{ \w+ \}  |  \w+ )         # ${name} or name
-    (?:                             # then any run of subscripts or arrows
-        -> (?: \[ [^\]]* \] | \{ [^\}]* \} )
-      |     \[ [^\]]* \]
-      |     \{ [^\}]* \}
-    )*
-/x;
+Readonly::Scalar my $VARIABLE_RX      => qr{ [\$\@] (?: \{ \w+ \} | \w+ ) }sx;
+Readonly::Scalar my $SUBSCRIPT_RX     => qr{ (?: -> )? (?: \[ [^\]]* \] | \{ [^\}]* \} ) }sx;
+Readonly::Scalar my $INTERPOLATION_RX => qr{ $VARIABLE_RX $SUBSCRIPT_RX* }sx;
+
+# One \Q...\E span, or a \Q that runs to the end.  The backslashes are in
+# character classes so that this policy does not read its own source as a span.
+Readonly::Scalar my $SPAN_RX => qr{ [\\] Q (.*?) (?: [\\] E | \z ) }sx;
 
 =head2 METHODS
 
@@ -151,13 +149,13 @@ sub _literal_remainders {
     return () if !defined $string || index( $string, '\\Q' ) < 0;
 
     my @remainders;
-    while ( $string =~ m/\\Q(.*?)(?:\\E|\z)/gs ) {
+    while ( $string =~ m{ $SPAN_RX }gsx ) {
         my $body = $1;
 
-        $body =~ s/$INTERPOLATION_RX//g;
-        $body =~ s/\s+//g if $self->{_allow_whitespace};
+        $body =~ s{ $INTERPOLATION_RX }{}gsx;
+        $body =~ s{\s+}{}gsx if $self->{_allow_whitespace};
 
-        push @remainders, $body if length $body;
+        push @remainders, $body if length($body) > 0;
     }
 
     return @remainders;

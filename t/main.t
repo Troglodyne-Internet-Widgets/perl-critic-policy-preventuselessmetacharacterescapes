@@ -1,5 +1,5 @@
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 
 use re '/aa';
 
@@ -9,7 +9,7 @@ use File::Temp();
 use Test::More;
 
 use Perl::Critic;
-use Perl::Critic::Policy::RegularExpressions::PreventUselessMetacharacterEscapes;
+require_ok('Perl::Critic::Policy::RegularExpressions::PreventUselessMetacharacterEscapes');
 
 # -profile => q{} because Perl::Critic otherwise walks up from cwd looking for
 # a .perlcriticrc, finds this dist's own, and runs every policy in it against
@@ -66,7 +66,7 @@ is( violations(q{my $re = qr/\Qa.b\E and \Qc.d\E/;}), 1, 'two wide spans in one 
 {
     my $rc = File::Temp->new( SUFFIX => '.rc' );
     print {$rc} "[RegularExpressions::PreventUselessMetacharacterEscapes]\nallow_whitespace = 1\n";
-    close $rc;
+    close $rc or die "Could not close the configuration file: $!";
 
     my $lenient = Perl::Critic->new(
         -profile         => "$rc",
@@ -80,4 +80,15 @@ is( violations(q{my $re = qr/\Qa.b\E and \Qc.d\E/;}), 1, 'two wide spans in one 
 }
 
 done_testing;
+
+1;
+
+__END__
+
+=head1 DESCRIPTION
+
+Tests for the PreventUselessMetacharacterEscapes policy.  Runs the policy over snippets that must and must not be reported, and over the
+C<allow_whitespace> parameter.
+
+=cut
 
